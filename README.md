@@ -1,4 +1,4 @@
-# API Projec
+# API Project
 
 This is a basic FastAPI project intended for academic evaluation.
 

@@ -1,5 +1,6 @@
 import json
-from typing import List, Optional
+from typing import List
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 from starlette.requests import Request
@@ -7,92 +8,62 @@ from starlette.responses import Response, JSONResponse, RedirectResponse
 
 app = FastAPI()
 
+# Q1
 @app.get("/hello")
-def hello(request : Request,name:str = "Non défini(e)",is_teacher:bool = False):
-    accept_type = request.headers.get("Accept")
-    if accept_type != "text/plain" and accept_type != "text/html":
-        return "You won't see shit bitch!"
-    else:
-        if is_teacher is True:
-            return JSONResponse({"message" : f"Hello there teacher {name}!"})
-        else:
-            if name != "Non défini(e)":
-                return JSONResponse({"message": f"Hello there {name}!"})
-            return Response(content=json.dumps({"message":"Hello there bitch!"}),status_code=200,media_type="application/json")
-
-
-@app.get("/secret")
-def verify_user(request : Request):
-    user_secret_key = request.headers.get("Authorization")
-    if user_secret_key == "my_secret_key":
-        return JSONResponse({"message" : "You entered the right key!"},200)
-    return JSONResponse({"message" : f"{user_secret_key} is not the right key! You are not allowed here!"},403)
-
-class Code(BaseModel):
-    secret_code: int
-
-@app.post("/code")
-def verify_code(code: Code):
-    if len(str(code.secret_code)) == 4:
-        return JSONResponse({"message" : f"You entered the right code of 4 length : {code.secret_code}!"},200)
-    return JSONResponse({"message" : f"{code.secret_code} is not the right code! You are not allowed here!"},400)
-
-@app.get("/welcome")
-def welcome(request: Request):
-    accept_type = request.headers.get("Accept")
-    key_value = request.headers.get("x-api-key")
-    if accept_type != "text/plain" and accept_type != "text/html":
-        return Response(content=json.dumps({"message" : f"Media type not supported : {accept_type}"}),status_code=400,media_type="application/json")
-    if key_value != "12345678":
-        return Response(content=json.dumps({"message":"The api key was not recognized!"}),status_code=403,media_type="text/html")
-    with open("welcome.html","r",encoding="utf-8") as file:
+def say_hello():
+    with open("hello.html", "r", encoding="utf-8") as file:
         html_content=file.read()
     return Response(content=html_content,status_code=200,media_type="text/html")
 
-class Event(BaseModel):
-    name: str
-    description: str
-    start_date : str
-    end_date : str
+# Q2
+@app.get("/welcome")
+def welcome_user(name:str):
+    return Response(content=json.dumps({"message":f"Welcome {name}"}),status_code=200,media_type="application/json")
 
-events_store: List[Event] = []
+class Player(BaseModel):
+    Number : int
+    Name : str
 
-def serialized_stored_events():
-    converted_events = []
-    for event in events_store:
-        converted_events.append(event.model_dump())
-    return converted_events
+player_list : List[Player] = []
 
-@app.get("/events")
-def get_event():
-    return Response(content=json.dumps({"events" : serialized_stored_events()}),status_code=200,media_type="application/json")
+def serialized_player_list():
+    converted_player_list = []
+    for player in player_list:
+        converted_player_list.append(player.model_dump())
+    return converted_player_list
 
-@app.post("/events")
-def post_event(list_event : List[Event]):
-    for event in list_event:
-        exist = False
-        for initial_event in events_store:
-            if initial_event.name == event.name:
-                exist = True
-        if exist is False:
-            events_store.append(event)
-    return Response(content=json.dumps({"events": serialized_stored_events()}),status_code=200,media_type="application/json")
 
-@app.put("/events")
-def modify_event(list_event: List[Event]):
-    for event in list_event:
+# Q3
+@app.post("/players")
+def post_players(new_player_list : List[Player]):
+    for new_player in new_player_list:
+        player_list.append(new_player)
+    return Response(content=json.dumps({"players":serialized_player_list()}),status_code=201,media_type="application/json")
+
+# Q4
+@app.get("/players")
+def get_player_list():
+    return Response(content=json.dumps({"players" : serialized_player_list()}),status_code=200,media_type="application/json")
+
+# Q5
+@app.put("/players")
+def modify_player(modified_player_list: List[Player]):
+    for modified_player in modified_player_list:
         found = False
-        for i,initial_event in enumerate(events_store):
-            if initial_event.name == event.name:
-                events_store[i] = event
+        for i,old_player in enumerate(player_list):
+            if old_player.Number == modified_player.Number:
+                player_list[i] = modified_player
                 found = True
                 break
         if found is False:
-            events_store.append(event)
-    return Response(content=json.dumps({"events": serialized_stored_events()}),status_code=200,media_type="application/json")
+            player_list.append(modified_player)
+    return Response(content=json.dumps({"players": serialized_player_list()}),status_code=200,media_type="application/json")
 
-@app.get("/{full_path:path}")
-def catch_all(full_path: str):
-    with open("not_found.html","r",encoding="utf-8") as file:
-        html_content=file.read()
-    return Response(content=html_content,status_code=404,media_type="text/html")
+# Q6
+
+
+# BONUS
+@app.get("/players-authorized")
+def get_player_list(request : Request):
+
+    return Response(content=json.dumps({"players" : serialized_player_list()}),status_code=200,media_type="application/json")

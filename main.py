@@ -4,7 +4,7 @@ from typing import List
 from fastapi import FastAPI
 from pydantic import BaseModel
 from starlette.requests import Request
-from starlette.responses import Response, JSONResponse, RedirectResponse
+from starlette.responses import Response
 
 app = FastAPI()
 
@@ -61,9 +61,15 @@ def modify_player(modified_player_list: List[Player]):
 
 # Q6
 
+#Dans le dossier postman
 
 # BONUS
 @app.get("/players-authorized")
 def get_player_list(request : Request):
-
-    return Response(content=json.dumps({"players" : serialized_player_list()}),status_code=200,media_type="application/json")
+    authorization_value = request.headers.get("Authorization")
+    if authorization_value is None:
+        return Response(content=json.dumps({"message":"You are not authorized to have access to the demanded ressource."}),status_code=401,media_type="application/json")
+    elif authorization_value != "bon courage":
+        return Response(content=json.dumps({"message":"You do not have the required rights to access the demanded ressource"}),status_code=403,media_type="application/json")
+    else:
+        return Response(content=json.dumps({"players" : serialized_player_list()}),status_code=200,media_type="application/json")

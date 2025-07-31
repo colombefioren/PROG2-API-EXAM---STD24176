@@ -94,7 +94,7 @@ def get_ping_auth(request : Request):
     decoded_user_info_str = decoded_user_info.decode('utf-8')
 
     if decoded_user_info_str != required_value:
-        return Response(content=json.dumps({"message" : "La ressource demandee ne peut pas vous être acceptee"}),status_code=401,media_type="applicatoin/json")
+        return Response(content=json.dumps({"message" : "La ressource demandee ne peut pas vous être acceptee"}),status_code=401,media_type="application/json")
     return Response(content="pong",status_code=200,media_type="text/plain")
 
 # Q3

@@ -34,25 +34,20 @@ class PostModel(BaseModel):
 
 stored_posts : List[PostModel] = []
 
-def serialized_stored_posts_isoformat():
+def serialized_stored_posts():
     converted_posts = []
     for post in stored_posts:
-        post.creation_datetime = post.creation_datetime.isoformat()
+        post.creation_datetime = str(post.creation_datetime)
         converted_posts.append(post.model_dump())
     return converted_posts
 
-def serialized_stored_posts_format():
-    converted_posts = []
-    for post in stored_posts:
-        converted_posts.append(post.model_dump())
-    return converted_posts
 
 @app.post("/posts")
 def create_posts(posts_list : List[PostModel]):
     for post in posts_list:
         stored_posts.append(post)
     return Response(
-        content=json.dumps(serialized_stored_posts_isoformat()),
+        content=json.dumps(serialized_stored_posts()),
         status_code=201,
         media_type="application/json"
     )
@@ -62,7 +57,7 @@ def create_posts(posts_list : List[PostModel]):
 @app.get("/posts")
 def get_posts():
     return Response(
-        content=json.dumps(serialized_stored_posts_format()),
+        content=json.dumps(serialized_stored_posts()),
         status_code=200,
         media_type="application/json")
 
@@ -80,7 +75,7 @@ def modify_posts(posts_list: List[PostModel]):
                 break
         if found is False:
             stored_posts.append(updated_post)
-    return Response(content=json.dumps(serialized_stored_posts_isoformat()),status_code=200,media_type="application/json")
+    return Response(content=json.dumps(serialized_stored_posts()),status_code=200,media_type="application/json")
 
 
 # BONUS

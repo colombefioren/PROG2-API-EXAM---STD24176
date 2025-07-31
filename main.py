@@ -34,7 +34,14 @@ class PostModel(BaseModel):
 
 stored_posts : List[PostModel] = []
 
-def serialized_stored_posts():
+def serialized_stored_posts_isoformat():
+    converted_posts = []
+    for post in stored_posts:
+        post.creation_datetime = post.creation_datetime.isoformat()
+        converted_posts.append(post.model_dump())
+    return converted_posts
+
+def serialized_stored_posts_format():
     converted_posts = []
     for post in stored_posts:
         converted_posts.append(post.model_dump())
@@ -45,7 +52,7 @@ def create_posts(posts_list : List[PostModel]):
     for post in posts_list:
         stored_posts.append(post)
     return Response(
-        content=json.dumps(serialized_stored_posts()),
+        content=json.dumps(serialized_stored_posts_isoformat()),
         status_code=201,
         media_type="application/json"
     )
@@ -55,15 +62,15 @@ def create_posts(posts_list : List[PostModel]):
 @app.get("/posts")
 def get_posts():
     return Response(
-        content=json.dumps(serialized_stored_posts()),
+        content=json.dumps(serialized_stored_posts_format()),
         status_code=200,
         media_type="application/json")
 
 # Q6
 
 
-@app.put("/events")
-def modify_event(posts_list: List[PostModel]):
+@app.put("/posts")
+def modify_posts(posts_list: List[PostModel]):
     for updated_post in posts_list:
         found = False
         for i,original_post in enumerate(stored_posts):
@@ -73,7 +80,7 @@ def modify_event(posts_list: List[PostModel]):
                 break
         if found is False:
             stored_posts.append(updated_post)
-    return Response(content=json.dumps(serialized_stored_posts()),status_code=200,media_type="application/json")
+    return Response(content=json.dumps(serialized_stored_posts_isoformat()),status_code=200,media_type="application/json")
 
 
 # BONUS
